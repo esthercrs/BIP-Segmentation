@@ -8,8 +8,8 @@ import torchvision.transforms.functional as TF
 
 from PIL import Image
 import numpy as np
-class ForestryDataset(Dataset):
 
+class ForestryDataset(Dataset):
     """Forestry dataset class to create the test
     and train dataset depending on the input arguments"""
 
@@ -67,32 +67,40 @@ class ForestryDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
+        # Get the image path
         img_path = self.dataList[idx]
         image = Image.open(img_path)
         imageArray = np.array(image, np.uint8)
+        # Remove the IR channel
         RGBImage = imageArray[:, :, 0:3]
 
         # Convert back from numpy to Image
         RGBImage = Image.fromarray(RGBImage)
 
+        # Get the path of the mask
         mask_path = self.dict[img_path]
         mask = Image.open(mask_path)
-        resize = transforms.Resize(size=(self.size, self.size))
-        convert_tensor = transforms.ToTensor()
 
-        #visualize( original_image = image, RGB_image = RGBImage, ground_truth_mask = mask)
         # Convert back from numpy to mask image
         mask = Image.fromarray(np.asarray(mask)*255)
-        
+       
+        # PyTorch transformations
+        resize = transforms.Resize(size=(self.size, self.size))
+        convert_tensor = transforms.ToTensor()
+       
+        # Transformations for the test data
         if self.transform:
             image  = self.transform(RGBImage)
-            #mask =  resize(mask)
             mask = convert_tensor(mask)
+        
+        # Transformations for the train data
         else:
             image, mask = self.transformData(RGBImage, mask)
 
         return image, mask
-
+    
+    """Custom transform function created to make sure that the image and the mask 
+    has the same augmentations applied"""
     def transformData(self, image, mask):
   
         # Random crop
