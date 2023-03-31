@@ -9,7 +9,9 @@ import torchvision.transforms.functional as TF
 from PIL import Image
 import numpy as np
 class ForestryDataset(Dataset):
-    """Forestry dataset."""
+
+    """Forestry dataset class to create the test
+    and train dataset depending on the input arguments"""
 
     def __init__(self, root_dir, size = 1024, train = True, transform=None):
         """
