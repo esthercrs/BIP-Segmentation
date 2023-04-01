@@ -108,7 +108,8 @@ def main():
         trainData = ForestryDataset(args.path, size = args.image_size, train = True, transform = None)
         train_dataloader = DataLoader(trainData, batch_size=2, shuffle=True)
 
-    visualizeResults(train_logs_list, test_logs_list)
+    visualizeResults(args,train_logs_list, test_logs_list)
 
 if __name__ == "__main__":
     main()
+    
