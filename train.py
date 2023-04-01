@@ -4,6 +4,7 @@ import argparse
 
 from utils.preprocessing import ForestryDataset
 from utils.models import Models
+from utils.helper import EarlyStopping
 
 import torch
 from torchvision import transforms
@@ -61,6 +62,27 @@ def main():
     train_epoch = model_obj.getTrainFunction(model, lossFunction, metrics, optimizer, device, True)
     test_epoch = model_obj.getValidFunction(model, lossFunction, metrics, device, True)
 
+    # Main training block
+    early_stopping = EarlyStopping(patience=10, verbose=True,delta=0.001,mode='min',model=model)
+    best_iou_score = 0.0
+    train_logs_list, test_logs_list = [], []
+
+    for i in range(0, args.epochs):
+        
+        print('\nEpoch: {}'.format(i))
+        train_logs = train_epoch.run(train_dataloader)
+        test_logs = test_epoch.run(test_dataloader)
+        train_logs_list.append(train_logs)
+        test_logs_list.append(test_logs)
+
+        early_stopping(test_logs['dice_loss'], model)
+        if early_stopping.early_stop:
+                print("Early stopping")
+                break
+        # Augmenting the same dataset again    
+        trainData = ForestryDataset(args.path, size = args.image_size, train = True, transform = None)
+        train_dataloader = DataLoader(trainData, batch_size=2, shuffle=True)
+    
 
 if __name__ == "__main__":
     main()
