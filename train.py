@@ -4,11 +4,12 @@ import argparse
 
 from utils.preprocessing import ForestryDataset
 from utils.models import Models
-from utils.helper import EarlyStopping
+from utils.helper import EarlyStopping, visualize
 
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
+import numpy as np
 import segmentation_models_pytorch as smp
 
 
@@ -29,6 +30,30 @@ parser.add_argument("-wd", default=0.001, type=float,
                     help = "Weight decay for L2 regularization")
 parser.add_argument("-early_stop", action='store_true', default = False,
                     help="Early stopping if the loss stops decreasing for certain epochs")
+
+def visualizeResults(args, train_logs_list, test_logs_list):
+    # Arrays to store the loss and iou score
+    trainDiceLoss = []
+    testDiceLoss = []
+    trainIou = []
+    testIou = []
+
+    for log in train_logs_list:
+        trainDiceLoss.append(log['dice_loss'])
+        trainIou.append(log['iou_score'])
+
+    for log in test_logs_list:
+        testDiceLoss.append(log['dice_loss'])
+        testIou.append(log['iou_score'])
+
+    epochsList = np.arange(1,len(trainDiceLoss)+1,1)
+    
+    titleLoss = "Dice Loss for "+args.method+ "pretrained on" + args.encoder
+    titleIoU = "IoU score for "+args.method+ "pretrained on" + args.encoder
+    
+    visualize(epochsList,trainDiceLoss,testDiceLoss,"Train Dice Loss","Test Dice Loss","Epochs","Dice Loss",titleLoss,save=True)
+    visualize(epochsList,trainIou,testIou,"Train IoU score","Test IoU score","Epochs","IoU Score",titleIoU,save=True)
+
 
 def main():
     args = parser.parse_args()
@@ -82,7 +107,8 @@ def main():
         # Augmenting the same dataset again    
         trainData = ForestryDataset(args.path, size = args.image_size, train = True, transform = None)
         train_dataloader = DataLoader(trainData, batch_size=2, shuffle=True)
-    
+
+    visualizeResults(train_logs_list, test_logs_list)
 
 if __name__ == "__main__":
     main()
