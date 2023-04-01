@@ -7,7 +7,7 @@ class Models:
     using https://github.com/qubvel/segmentation_models.pytorch library
     """
 
-    def __init__(self, model_name, encoder, encoder_weights, activation,output_classes) -> None:
+    def __init__(self, model_name, encoder, output_classes=1, encoder_weights="imagenet", activation="sigmoid") -> None:
         
         if model_name == "unet":
             self.model = smp.Unet(
